@@ -17,6 +17,16 @@ spec:
         applicationId: nrp-provisioner
         k8s-app: nrao-provisioner
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                - mghpcc
+                - unl
       containers:
       - env:
         - name: CONDOR_HOST
@@ -26,13 +36,13 @@ spec:
         - name: CVMFS_MOUNTS
           value: connect,stash,singularity
         - name: HTCONDOR_QUERY_INSECURE
-          value: "yes"
-        image: sfiligoi/prp-osg-pool:provisioner-direct
+          value: 'yes'
+        image: hub.opensciencegrid.org/ashtongraves/nrp-provisioner
         imagePullPolicy: Always
         name: provisioner
         resources:
           limits:
-            cpu: "1"
+            cpu: '1'
             memory: 10Gi
           requests:
             cpu: 100m
@@ -47,8 +57,6 @@ spec:
           subPath: osg_provisioner.conf
         - mountPath: /var/log/provisioner
           name: log-pvc
-      restartPolicy: Always
-      serviceAccount: prp-htcondor-provisioner
       serviceAccountName: prp-htcondor-provisioner
       volumes:
       - name: configpasswd
@@ -59,7 +67,6 @@ spec:
             path: prp-wn.token
           secretName: prp-htcondor-wn-secret
       - configMap:
-          defaultMode: 420
           items:
           - key: osg_provisioner.conf
             path: osg_provisioner.conf
@@ -67,5 +74,4 @@ spec:
         name: kconf
       - name: log-pvc
         persistentVolumeClaim:
-          claimName: nrao-provisioner-log-pvc
-
+          claimName: nrao-provisioner-log-pvc2

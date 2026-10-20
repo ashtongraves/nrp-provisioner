@@ -4,9 +4,9 @@ metadata:
   name: direct-provisioner-log-pvc
   namespace: osg-ligo
 spec:
-  storageClassName: rook-cephfs-central
   accessModes:
   - ReadWriteMany
   resources:
     requests:
       storage: 2Gi
+  storageClassName: rook-cephfs-central

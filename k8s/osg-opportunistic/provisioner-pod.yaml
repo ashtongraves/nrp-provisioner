@@ -1,68 +1,65 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: direct-provisioner
-  namespace: osg-opportunistic
   labels:
     k8s-app: direct-provisioner
+  name: direct-provisioner
+  namespace: osg-opportunistic
 spec:
   replicas: 1
   selector:
     matchLabels:
       k8s-app: direct-provisioner
   template:
-    metadata: 
+    metadata:
       labels:
         k8s-app: direct-provisioner
     spec:
-      serviceAccountName: prp-htcondor-provisioner
-      restartPolicy: Always
       containers:
-      - name: provisioner
-        image: sfiligoi/prp-osg-pool:provisioner-direct
-        imagePullPolicy: Always
-        #command: ["sh", "-c", "sleep infinity"]
-        env:
+      - env:
         - name: CONDOR_HOST
-          value: "cm-1.ospool.osg-htc.org,cm-2.ospool.osg-htc.org"
+          value: cm-1.ospool.osg-htc.org,cm-2.ospool.osg-htc.org
         - name: K8S_NAMESPACE
-          value: "osg-opportunistic"
+          value: osg-opportunistic
         - name: CVMFS_MOUNTS
-          value: "icecube,xenon,fermilab,connect,stash"
+          value: icecube,xenon,fermilab,connect,stash,singularity
         - name: HTCONDOR_QUERY_INSECURE
-          value: "yes"
+          value: 'yes'
+        image: hub.opensciencegrid.org/ashtongraves/nrp-provisioner
+        imagePullPolicy: Always
+        name: provisioner
         resources:
-           limits:
-             memory: 2Gi
-             cpu: 1
-           requests:
-             memory: 0.5Gi
-             cpu: 0.1
+          limits:
+            cpu: '1'
+            memory: 10Gi
+          requests:
+            cpu: 100m
+            memory: 1Gi
         volumeMounts:
-        - name: configpasswd
-          mountPath: /etc/condor/tokens.d/prp-wn.token
-          subPath: prp-wn.token
+        - mountPath: /etc/condor/tokens.d/prp-wn.token
+          name: configpasswd
           readOnly: true
-        - name: kconf
-          mountPath: /home/provisioner/osg_provisioner.conf
+          subPath: prp-wn.token
+        - mountPath: /home/provisioner/osg_provisioner.conf
+          name: kconf
           subPath: osg_provisioner.conf
-        - name: log-pvc
-          mountPath: /var/log/provisioner
+        - mountPath: /var/log/provisioner
+          name: log-pvc
+      serviceAccountName: prp-htcondor-provisioner
       volumes:
       - name: configpasswd
         secret:
-          secretName: prp-htcondor-wn-secret
-          items:
-             - key: prp-wn.token
-               path: prp-wn.token
           defaultMode: 256
-      - name: kconf
-        configMap:
+          items:
+          - key: prp-wn.token
+            path: prp-wn.token
+          secretName: prp-htcondor-wn-secret
+      - configMap:
           items:
           - key: osg_provisioner.conf
             path: osg_provisioner.conf
           name: direct-provisioner-config
+        name: kconf
       - name: log-pvc
         persistentVolumeClaim:
-          claimName: direct-provisioner-log-pvc
-
+          claimName: direct-provisioner-log-pvc2
