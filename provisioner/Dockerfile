@@ -20,11 +20,11 @@ RUN pip3 install kubernetes
 ADD 03_condor_sec.config /etc/condor/config.d/03_condor_sec.config
 
 # configure python packages
-RUN mkdir -p /opt/provisioner && cd /opt/provisioner && git clone https://github.com/ashtongraves/prp-htcondor-portal.git && cd prp-htcondor-portal && git checkout osg_pool_base
+ADD prp_provisioner /opt/provisioner/prp_provisioner
 
 RUN useradd provisioner && chown -R provisioner /opt/provisioner
 
-RUN su provisioner -c '/usr/bin/ln -s /opt/provisioner/prp-htcondor-portal/provisioner/python/prp_provisioner /home/provisioner/prp_provisioner'
+RUN su provisioner -c '/usr/bin/ln -s /opt/provisioner/prp_provisioner /home/provisioner/prp_provisioner'
 
 ADD provisioner_main.py /home/provisioner/provisioner_main.py
 ADD provisioner_info.py /home/provisioner/provisioner_info.py
