@@ -1,4 +1,4 @@
-FROM hub.opensciencegrid.org/osg-htc/ospool-ep:24-release
+FROM hub.opensciencegrid.org/osg-htc/ospool-ep:25-release-20260726-0746
 
 # Enable OpenCL
 # As suggested by https://github.com/WIPACrepo/pyglidein/blob/master/Dockerfile
