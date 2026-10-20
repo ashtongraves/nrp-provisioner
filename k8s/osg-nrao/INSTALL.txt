@@ -10,8 +10,6 @@ kubectl create secret generic prp-htcondor-wn-secret -n osg-nrao --from-file=prp
 2) create config file
 kubectl create configmap nrao-provisioner-config -n osg-nrao --from-file=osg_provisioner.conf=osg_provisioner.conf
 
-kubectl create configmap nrao-glidein-config -n osg-nrao --from-file=70-nrao.config=70-nrao.config
-
 3) Launch yamls
 kubectl create -f pvc-provisioner-logs.yaml
 kubectl create -f provisioner-pod.yaml

@@ -37,7 +37,7 @@ spec:
           value: connect,stash,singularity
         - name: HTCONDOR_QUERY_INSECURE
           value: 'yes'
-        image: hub.opensciencegrid.org/ashtongraves/nrp-provisioner
+        image: hub.opensciencegrid.org/ashtongraves/nrp-provisioner:25-test
         imagePullPolicy: Always
         name: provisioner
         resources:
