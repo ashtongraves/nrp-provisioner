@@ -9,19 +9,20 @@
 from . import provisioner_clustering
 
 class ProvisionerEventLoop:
-   def __init__(self, log_obj, schedd_obj, collector_obj, k8s_obj, max_pods_per_cluster, max_submit_pods_per_cluster):
+   def __init__(self, log_obj, schedd_obj, collector_obj, k8s_obj, max_pods_per_cluster, max_submit_pods_per_cluster, backoff_obj=None):
       self.log_obj = log_obj
       self.schedd = schedd_obj
       self.collector = collector_obj
       self.k8s = k8s_obj
       self.max_pods_per_cluster = max_pods_per_cluster
       self.max_submit_pods_per_cluster = max_submit_pods_per_cluster
+      self.backoff = backoff_obj
 
    def query_system(self):
       schedd_attrs = provisioner_clustering.ProvisionerClusteringAttributes().get_schedd_attributes()
       try:
          schedd_jobs = self.schedd.query_idle(projection=schedd_attrs)
-         startd_pods = self.collector.query()
+         startd_pods = self.collector.query(projection=['JobStarts'])
       except:
          self.log_obj.log_error("[ProvisionerEventQuery] Failed to query HTCondor")
          self.log_obj.sync()
@@ -48,6 +49,13 @@ class ProvisionerEventLoop:
          self.log_obj.log_error("[ProvisionerEventLoop] Failed to query")
          self.log_obj.sync()
          return
+
+      if self.backoff!=None:
+         try:
+            for msg in self.backoff.update(k8s_clusters):
+               self.log_obj.log_info("[ProvisionerEventLoop] %s"%msg)
+         except:
+            self.log_obj.log_error("[ProvisionerEventLoop] Failed to update the provisioning back-off")
 
       all_clusters_set = set(schedd_clusters.keys())|set(k8s_clusters.keys())
       for ckey in all_clusters_set:
@@ -111,9 +119,15 @@ class ProvisionerEventLoop:
 
       (min_pods,n_pods_unclaimed) = self._check_and_report_cluster(cluster_id, k8s_cluster, n_jobs_idle, min_pods)
 
+      suspended_for = self.backoff.suspended_for(cluster_id) if self.backoff!=None else 0
+
       if n_pods_unclaimed>=min_pods:
          pass # we have enough pods, do nothing for now
          # we may want to do some sanity checks here, eventually
+      elif suspended_for>0:
+         (n_exits,n_suspensions) = self.backoff.get_state(cluster_id)
+         self.log_obj.log_debug("[ProvisionerEventLoop] Cluster '%s' provisioning suspended for %i more seconds (%i unclaimed exits, suspension %i)"%
+                                (cluster_id, suspended_for, n_exits, n_suspensions))
       else:
          try:
             job_name = self.k8s.submit(schedd_cluster.get_attr_dict(), min_pods-n_pods_unclaimed)

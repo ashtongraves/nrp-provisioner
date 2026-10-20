@@ -36,6 +36,26 @@ Apptainer needs unprivileged user namespaces on the nodes. Set `apptainer` in th
 The provisioner passes the value to the worker pods as `PROVISIONER_APPTAINER`. Restart the
 provisioner after changing it, since the config file is mounted with `subPath`.
 
+## Provisioning back-off
+
+The provisioner groups idle jobs by resource shape and keeps pods waiting for each group. Some
+jobs can never match these pods (for example jobs pinned to another site, or aimed at an HTCondor
+annex), so their pods idle out and get replaced. To limit that, a group whose pods keep exiting
+without ever being claimed is suspended for a while:
+
+| Setting (`[k8s]` section) | Default | Meaning |
+|---|---|---|
+| `backoff_unclaimed_exits` | `2` | Suspend a group after this many pods exit unclaimed with no claim in between (`0` disables) |
+| `backoff_time` | `3600` | First suspension, in seconds; doubled each time it happens again |
+| `backoff_max_time` | `28800` | Longest suspension, in seconds |
+
+Only pods that end `Succeeded` with a startd that was never claimed count. Failed or deleted pods
+(preemption, node problems) don't. Any claim in a group clears its back-off. Groups are by shape
+only, so a group mixing unmatchable jobs with jobs that do match is never suspended. The state
+lives in memory and starts fresh when the provisioner restarts.
+
+Unit tests: `cd provisioner && python3 -m unittest discover -s tests`.
+
 ## Origin
 
 Consolidated from the parts of two repositories that are actually deployed, with git

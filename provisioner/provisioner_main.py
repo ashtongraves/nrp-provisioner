@@ -14,6 +14,7 @@ import prp_provisioner.provisioner_k8s as provisioner_k8s
 import prp_provisioner.provisioner_logging as provisioner_logging
 import prp_provisioner.provisioner_htcondor as provisioner_htcondor
 import prp_provisioner.event_loop as event_loop
+import prp_provisioner.provisioner_backoff as provisioner_backoff
 
 def main(log_fname, namespace, cvmfs_mounts):
    fconfig = configparser.ConfigParser()
@@ -54,7 +55,12 @@ def main(log_fname, namespace, cvmfs_mounts):
    max_submit_pods_per_cluster = int(kfconfig.get('max_submit_pods_per_cluster','1000'))
    sleep_time = int(fconfig['DEFAULT'].get('sleep_time','120'))
 
-   el = event_loop.ProvisionerEventLoop(log_obj, schedd_obj, collector_obj, k8s_obj, max_pods_per_cluster, max_submit_pods_per_cluster)
+   # stop provisioning for a while for clusters whose pods keep exiting unclaimed
+   backoff_obj = provisioner_backoff.ProvisionerBackoff(int(kfconfig.get('backoff_unclaimed_exits','2')),
+                                                        int(kfconfig.get('backoff_time','3600')),
+                                                        int(kfconfig.get('backoff_max_time','28800')))
+
+   el = event_loop.ProvisionerEventLoop(log_obj, schedd_obj, collector_obj, k8s_obj, max_pods_per_cluster, max_submit_pods_per_cluster, backoff_obj)
    while True:
       log_obj.log_debug("[Main] Iteration started, schedd whitelist='%s'"%schedd_whitelist)
       try:
