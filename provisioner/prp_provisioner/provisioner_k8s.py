@@ -291,6 +291,9 @@ class ProvisionerK8S:
       if self.additional_requirements != "" :
          env_list.append(('ADDITIONAL_REQUIREMENTS',self.additional_requirements))
       env_list.append(('PROVISIONER_APPTAINER',self.apptainer))
+      if self.apptainer=="no":
+         # no point in downloading the default .sif image if we cannot use it
+         env_list.append(('OSG_DEFAULT_CONTAINER_CVMFS','1'))
 
       for k in self.additional_envs:
          env_list.append((k,self.additional_envs[k]))

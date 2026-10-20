@@ -31,6 +31,7 @@ Apptainer needs unprivileged user namespaces on the nodes. Set `apptainer` in th
 |---|---|---|
 | Jobs provisioned for | jobs with a `SingularityImage` | jobs without a `SingularityImage` |
 | WN apptainer/singularity validation | runs; the pilot aborts if it fails | skipped |
+| Default container image | downloaded as a `.sif` | not downloaded (`OSG_DEFAULT_CONTAINER_CVMFS=1`) |
 
 The provisioner passes the value to the worker pods as `PROVISIONER_APPTAINER`. Restart the
 provisioner after changing it, since the config file is mounted with `subPath`.
