@@ -24,7 +24,8 @@ ProvisionerK8SConfigFields = ('namespace','condor_host',
                               'force_k8s_namespace_matching',
                               'request_fuse','storage_mbs','resources_dict',
                               'additional_requirements',
-                              'use_large_limit')
+                              'use_large_limit',
+                              'apptainer')
 
 class ProvisionerK8SConfig:
    """Config fie for ProvisionerK8S"""
@@ -116,6 +117,7 @@ class ProvisionerK8SConfig:
       self.storage_mbs = "20000"
       self.additional_resources = {}
       self.use_large_limit = "yes"
+      self.apptainer = "yes"
 
    def parse(self,
              dict,
@@ -146,6 +148,7 @@ class ProvisionerK8SConfig:
       self.storage_mbs = provisioner_config_parser.update_parse(self.storage_mbs, 'storage_mbs', 'str', fields, dict)
       self.additional_resources = provisioner_config_parser.update_parse(self.additional_resources, 'resources_dict', 'dict', fields, dict)
       self.use_large_limit = provisioner_config_parser.update_parse(self.use_large_limit, 'use_large_limit', 'str', fields, dict)
+      self.apptainer = provisioner_config_parser.update_parse(self.apptainer, 'apptainer', 'str', fields, dict)
 
 class ProvisionerK8S:
    """Kubernetes Query interface"""
@@ -181,6 +184,7 @@ class ProvisionerK8S:
       self.storage_mbs = copy.deepcopy(config.storage_mbs)
       self.additional_resources = copy.deepcopy(config.additional_resources)
       self.use_large_limit = copy.deepcopy(config.use_large_limit)
+      self.apptainer = copy.deepcopy(config.apptainer)
       return
 
    def authenticate(self, use_service_account=True):
@@ -286,6 +290,7 @@ class ProvisionerK8S:
          env_list.append(('FORCE_K8SNAMESPACE_MATCHING',self.force_k8s_namespace_matching))
       if self.additional_requirements != "" :
          env_list.append(('ADDITIONAL_REQUIREMENTS',self.additional_requirements))
+      env_list.append(('PROVISIONER_APPTAINER',self.apptainer))
 
       for k in self.additional_envs:
          env_list.append((k,self.additional_envs[k]))

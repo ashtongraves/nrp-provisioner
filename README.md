@@ -22,6 +22,19 @@ docs/                 Provisioner design notes
 
 The manifests and configs under `k8s/` match what was deployed on the cluster on 2026-10-20.
 
+## Apptainer toggle
+
+Apptainer needs unprivileged user namespaces on the nodes. Set `apptainer` in the
+`[DEFAULT]` section of `osg_provisioner.conf` to match the cluster:
+
+| | `apptainer=yes` (default) | `apptainer=no` |
+|---|---|---|
+| Jobs provisioned for | jobs with a `SingularityImage` | jobs without a `SingularityImage` |
+| WN apptainer/singularity validation | runs; the pilot aborts if it fails | skipped |
+
+The provisioner passes the value to the worker pods as `PROVISIONER_APPTAINER`. Restart the
+provisioner after changing it, since the config file is mounted with `subPath`.
+
 ## Origin
 
 Consolidated from the parts of two repositories that are actually deployed, with git

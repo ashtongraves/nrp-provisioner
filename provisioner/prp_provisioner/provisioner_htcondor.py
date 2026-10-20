@@ -16,7 +16,8 @@ from . import provisioner_config_parser
 ProvisionerHTCConfigFields = ('namespace','condor_host',
                               'app_name','k8s_domain',
                               'force_k8s_namespace_matching',
-                              'additional_requirements')
+                              'additional_requirements',
+                              'apptainer')
 
 class ProvisionerHTCConfig:
    """Config file for HTCOndor provisioning classes"""
@@ -26,13 +27,15 @@ class ProvisionerHTCConfig:
                 app_name = 'prp-wn',
                 k8s_domain='optiputer.net',
                 force_k8s_namespace_matching = "yes",
-                additional_requirements = ""):
+                additional_requirements = "",
+                apptainer = "yes"):
       self.namespace = copy.deepcopy(namespace)
       self.condor_host = copy.deepcopy(condor_host)
       self.app_name = copy.deepcopy(app_name)
       self.k8s_domain = copy.deepcopy(k8s_domain)
       self.force_k8s_namespace_matching = copy.deepcopy(force_k8s_namespace_matching)
       self.additional_requirements = copy.deepcopy(additional_requirements)
+      self.apptainer = copy.deepcopy(apptainer)
 
    def parse(self,
              dict,
@@ -44,6 +47,7 @@ class ProvisionerHTCConfig:
       self.app_name = provisioner_config_parser.update_parse(self.app_name, 'app_name', 'str', fields, dict)
       self.force_k8s_namespace_matching = provisioner_config_parser.update_parse(self.force_k8s_namespace_matching, 'force_k8s_namespace_matching', 'str', fields, dict)
       self.additional_requirements = provisioner_config_parser.update_parse(self.additional_requirements, 'additional_requirements', 'str', fields, dict)
+      self.apptainer = provisioner_config_parser.update_parse(self.apptainer, 'apptainer', 'str', fields, dict)
 
 class ProvisionerSchedd:
    """HTCondor schedd interface"""
@@ -63,6 +67,7 @@ class ProvisionerSchedd:
       self.namespace = copy.deepcopy(config.namespace)
       self.force_k8s_namespace_matching = copy.deepcopy(config.force_k8s_namespace_matching)
       self.additional_requirements = copy.deepcopy(config.additional_requirements)
+      self.apptainer = copy.deepcopy(config.apptainer)
 
    def query_idle(self, projection=[]):
       """Return the list of idle jobs for my namespace"""
@@ -78,6 +83,11 @@ class ProvisionerSchedd:
          query_str += ' && regexp(RequestK8SNamespace,"%s")'%self.namespace
       if self.additional_requirements != "":
          query_str += ' && (%s)'%self.additional_requirements
+      # without apptainer, the WNs cannot run jobs that ask for a container image
+      if self.apptainer=="no":
+         query_str += ' && isUndefined(SingularityImage)'
+      else:
+         query_str += ' && (!isUndefined(SingularityImage))'
 
       jobs=[]
 

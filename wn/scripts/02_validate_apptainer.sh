@@ -9,7 +9,10 @@ fi
 
 # else do nothing, let Condor figure it out
 
-if [ -f "/usr/bin/apptainer" ]; then
+# Note: this file is sourced, so do not exit unless we want the pilot to abort
+if [ "x${PROVISIONER_APPTAINER}" == "xno" ]; then
+  echo "Apptainer disabled by the provisioner (PROVISIONER_APPTAINER=no), skipping apptainer test"
+elif [ -f "/usr/bin/apptainer" ]; then
   # only test for apptainer functionality if singularity is present
   # may not be in all pods
 
@@ -19,7 +22,7 @@ if [ -f "/usr/bin/apptainer" ]; then
   if [ $rc -ne 0 ]; then
     echo "Apptainer test execution failed!"
     sleep 30
-    # exit 1
+    exit 1
   fi
 
 fi
