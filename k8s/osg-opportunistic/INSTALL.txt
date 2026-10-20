@@ -1,8 +1,8 @@
 0a) deploy service account
-kubectl create -n $NAMESPACE -f prp-htcondor-portal/provisioner/k8s/prp-htcondor-provisioner-account.yaml
+kubectl create -n $NAMESPACE -f ../rbac/prp-htcondor-provisioner-account.yaml
 
 0b) deploy wn account
-kubectl create -n $NAMESPACE -f prp-htcondor-portal/provisioner/k8s/prp-htcondor-wn-account.yaml
+kubectl create -n $NAMESPACE -f ../rbac/prp-htcondor-wn-account.yaml
 
 
 1) needs token in prp-wn-osgvo.token

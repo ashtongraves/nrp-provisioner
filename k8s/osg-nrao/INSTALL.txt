@@ -1,5 +1,5 @@
 0) deploy service account
-kubectl create -n $NAMESPACE -f prp-htcondor-portal/provisioner/k8s/prp-htcondor-provisioner-account.yaml
+kubectl create -n $NAMESPACE -f ../rbac/prp-htcondor-provisioner-account.yaml
 kubectl create -f cvmfs-nrao.yaml
 
 
@@ -15,13 +15,3 @@ kubectl create configmap nrao-glidein-config -n osg-nrao --from-file=70-nrao.con
 3) Launch yamls
 kubectl create -f pvc-provisioner-logs.yaml
 kubectl create -f provisioner-pod.yaml
-
-
-=== 24G version ===
-1) create config file
-kubectl create configmap nrao-provisioner-config-24 -n osg-nrao --from-file=osg_provisioner.conf=osg_provisioner-24.conf
-
-2) Launch yamls
-kubectl create -f pvc-provisioner-logs-24.yaml
-kubectl create -f provisioner-pod-24.yaml
-
