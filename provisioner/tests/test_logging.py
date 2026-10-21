@@ -27,7 +27,8 @@ class TestFileLogging(unittest.TestCase):
       self.dir.cleanup()
 
    def read_file(self):
-      return open(self.fname).read()
+      with open(self.fname) as fd:
+         return fd.read()
 
    def test_also_stdout_mirrors_the_file(self):
       log = provisioner_logging.ProvisionerFileLogging(self.fname, dated=False, want_log_debug=True, also_stdout=True)
