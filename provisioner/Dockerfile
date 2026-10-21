@@ -6,7 +6,9 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     yum clean all
 
 # OSG RPMs
-RUN yum -y install https://repo.opensciencegrid.org/osg/23-main/osg-23-main-el9-release-latest.rpm && \
+# OSG 24: its osg-ca-certs has the current Let's Encrypt chains (YE1, ISRG Root YE),
+# and its HTCondor still ships the classic htcondor python module (25 only has htcondor2)
+RUN yum -y install https://repo.opensciencegrid.org/osg/24-main/osg-24-main-el9-release-latest.rpm && \
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
     yum -y install python3-pip git less which && \
     yum -y install osg-ca-certs condor python3-condor && \
