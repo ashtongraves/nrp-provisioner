@@ -16,7 +16,7 @@ if [ $npids -lt 1 ]; then
   exit 1
 fi
 if [ $npids -gt 1 ]; then
-  echo "condor_master restrated at first step" 1>&2
+  echo "condor_master restarted at first step" 1>&2
   exit 1
 fi
 
@@ -42,7 +42,7 @@ while [ 0 -eq 0 ]; do
   fi
 
   if [ $npids -gt 1 ]; then
-    echo "condor_master restrated" 1>&2
+    echo "condor_master restarted" 1>&2
     break
   fi
 
@@ -58,7 +58,7 @@ echo "=== tail /pilot/log/MasterLog"
 tail -100 /pilot/log/MasterLog
 
 echo "=== tail /pilot/log/StartLog"
-tail -100 /pilotl/log/StartLog
+tail -100 /pilot/log/StartLog
 
 echo "========= startd_history ============="
 cat /pilot/log/startd_history

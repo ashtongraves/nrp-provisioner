@@ -1,4 +1,11 @@
-FROM hub.opensciencegrid.org/osg-htc/ospool-ep:25-release-20260726-0746
+ARG BASE_OSG_SERIES=25
+ARG BASE_YUM_REPO=release
+
+FROM hub.osg-htc.org/osg-htc/ospool-ep:${BASE_OSG_SERIES}-${BASE_YUM_REPO}
+
+# Previous args have gone out of scope
+ARG BASE_OSG_SERIES=25
+ARG BASE_YUM_REPO=release
 
 # Enable OpenCL
 # As suggested by https://github.com/WIPACrepo/pyglidein/blob/master/Dockerfile
@@ -13,7 +20,10 @@ RUN yum install -y clinfo && \
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
 # Add kubectl, to be able to interact with the k8s cluster
-RUN curl -L "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -o /usr/sbin/kubectl && \
+ARG KUBECTL_VERSION=v1.30.2
+ARG KUBECTL_SHA256=c6e9c45ce3f82c90663e3c30db3b27c167e8b19d83ed4048b61c1013f6a7c66e
+RUN curl -fL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/sbin/kubectl && \
+    echo "${KUBECTL_SHA256}  /usr/sbin/kubectl" | sha256sum -c - && \
     chmod u+x /usr/sbin/kubectl
 
 # Tweaked singularity for container environments
@@ -52,11 +62,11 @@ COPY scripts/21_advertise_k8s_provisioner.sh  /etc/osg/image-init.d/21_advertise
 COPY scripts/22_set_requirements.sh /etc/osg/image-init.d/22_set_requirements.sh
 
 # keep default low, as we expect to be running in opportunistic mode
-env ACCEPT_JOBS_FOR_HOURS=24
+ENV ACCEPT_JOBS_FOR_HOURS=24
 
 # keep default idle time low, as we may over-provision certain kinds of resources
 # but others may be waiting
-env ACCEPT_IDLE_MINUTES=20
+ENV ACCEPT_IDLE_MINUTES=20
 
 #
 # In addition to osgvo-docker-pilot envs,
