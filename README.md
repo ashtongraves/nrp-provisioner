@@ -10,7 +10,8 @@ OSPool worker nodes (glideins) to serve them.
 provisioner/          Provisioner image -> hub.opensciencegrid.org/ashtongraves/nrp-provisioner
   prp_provisioner/    Python library (schedd queries, job clustering, k8s Job submission)
 wn/                   Worker-node image -> hub.opensciencegrid.org/ashtongraves/nrp-provisioner-wn
-                      (built on hub.opensciencegrid.org/osg-htc/ospool-ep)
+                      (built on hub.osg-htc.org/osg-htc/ospool-ep; kept identical to
+                      osg-htc/nrp-ospool-ep in github.com/opensciencegrid/images)
 k8s/
   rbac/               Service accounts and roles for the provisioner and the worker nodes
   osg-opportunistic/  Per-namespace deployment, provisioner config and PVCs
@@ -21,6 +22,10 @@ docs/                 Provisioner design notes
 ```
 
 The manifests and configs under `k8s/` match what was deployed on the cluster on 2026-10-20.
+
+The worker image's base is `ospool-ep:${BASE_OSG_SERIES}-${BASE_YUM_REPO}` (default `25-release`).
+To build on a specific dated base instead, pass it in the repo argument, e.g.
+`docker build --build-arg BASE_YUM_REPO=release-20260726-0746 wn`.
 
 ## Apptainer toggle
 
