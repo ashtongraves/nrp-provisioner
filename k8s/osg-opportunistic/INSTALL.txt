@@ -1,17 +1,31 @@
-0a) deploy service account
-kubectl create -n $NAMESPACE -f ../rbac/prp-htcondor-provisioner-account.yaml
+Setting up the osg-opportunistic provisioner
+============================================
 
-0b) deploy wn account
-kubectl create -n $NAMESPACE -f ../rbac/prp-htcondor-wn-account.yaml
+General OSPool access points (see schedd_whitelist_regexp in osg_provisioner.conf).
 
+The files in this directory match what's deployed. Run these from this directory.
 
-1) needs token in prp-wn-osgvo.token
-# used by both provisioner and WNs
-kubectl create secret generic prp-htcondor-wn-secret -n osg-opportunistic --from-file=prp-wn.token=prp-wn-osgvo.token
+0) Service accounts, roles and node access (once per namespace): see ../rbac/INSTALL.txt
 
-2) create config file
-kubectl create configmap direct-provisioner-config -n osg-opportunistic --from-file=osg_provisioner.conf=osg_provisioner.conf
+   kubectl apply -n osg-opportunistic -f ../rbac/prp-htcondor-provisioner-account.yaml
+   kubectl apply -n osg-opportunistic -f ../rbac/prp-htcondor-wn-account.yaml
 
-3) Launch yamls
-kubectl create -f pvc-provisioner-logs.yaml
-kubectl create -f provisioner-pod.yaml
+1) Worker token secret (shared by the provisioner and the worker pods; not in this repo):
+
+   kubectl create secret generic prp-htcondor-wn-secret -n osg-opportunistic --from-file=prp-wn.token=<token file>
+
+2) Provisioner config:
+
+   kubectl create configmap direct-provisioner-config -n osg-opportunistic --from-file=osg_provisioner.conf=osg_provisioner.conf
+
+   The config is mounted with subPath, so after changing it restart the provisioner
+   (kubectl rollout restart deploy/<name> -n osg-opportunistic).
+
+3) Volumes: CVMFS (mounted into every worker pod) and the provisioner's log PVC:
+
+   kubectl create -f cvmfs.yaml
+   kubectl create -f pvc-provisioner-logs.yaml
+
+4) The provisioner:
+
+   kubectl create -f provisioner-pod.yaml

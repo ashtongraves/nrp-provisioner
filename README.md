@@ -21,7 +21,7 @@ k8s/
 docs/                 Provisioner design notes
 ```
 
-The manifests and configs under `k8s/` match what was deployed on the cluster on 2026-10-20.
+The manifests and configs under `k8s/` match what was deployed on the cluster on 2026-10-21.
 
 The worker image's base is `ospool-ep:${BASE_OSG_SERIES}-${BASE_YUM_REPO}` (default `25-release`).
 To build on a specific dated base instead, pass it in the repo argument, e.g.
