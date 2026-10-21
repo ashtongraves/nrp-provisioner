@@ -18,7 +18,11 @@ k8s/
   osg-icecube/
   osg-ligo/
   osg-nrao/
-docs/                 Provisioner design notes
+docs/
+  knowledge.md        How the system works and what was learned operating it (start here)
+  troubleshooting.md  Symptoms seen in production, their causes and fixes
+  logic.txt, resource_states.txt  Original design notes
+CLAUDE.md             Short brief for AI agents working on this repo
 ```
 
 The manifests and configs under `k8s/` match what was deployed on the cluster on 2026-10-20.
