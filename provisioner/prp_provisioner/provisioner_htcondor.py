@@ -8,8 +8,7 @@
 
 import copy
 import re
-import htcondor
-import classad
+import htcondor2
 
 from . import provisioner_config_parser
 
@@ -95,11 +94,11 @@ class ProvisionerSchedd:
       ok_schedds=0
       bad_schedds=0
       for sclassad in sobjs:
-         s=htcondor.Schedd(sclassad)
+         s=htcondor2.Schedd(sclassad)
          sname=sclassad['Name']
          have_myjobs=False
          try:
-            myjobs=s.xquery(query_str, full_projection)
+            myjobs=s.query(query_str, full_projection)
             have_myjobs=True
          except:
             self.log_obj.log_debug("[ProvisionerSchedd] Failed to query HTCondor schedd '%s'"%sname)
@@ -143,9 +142,10 @@ class ProvisionerSchedd:
 
    def _get_schedd_objs(self):
       sobjs=[]
-      c = htcondor.Collector()
+      c = htcondor2.Collector()
       try:
-         slist=c.query(ad_type=htcondor.AdTypes.Schedd,projection=['Name','AuthenticatedIdentity','MyAddress','AddressV1','Machine'])
+         # htcondor2.Schedd() also needs CondorVersion and CondorPlatform from the location ad
+         slist=c.query(ad_type=htcondor2.AdType.Schedd,projection=['Name','AuthenticatedIdentity','MyAddress','AddressV1','Machine','CondorVersion','CondorPlatform'])
       except:
          self.log_obj.log_debug("[ProvisionerSchedd] Failed to retrieve HTCondor schedd list")
          raise
@@ -204,9 +204,9 @@ class ProvisionerCollector:
       full_projection=['Name','AuthenticatedIdentity','State','Activity','K8SPodName','K8SNamespace', 'K8SDomain', 'K8SProvisionerType', 'K8SProvisionerName']+projection
       startds=[]
 
-      c = htcondor.Collector()
+      c = htcondor2.Collector()
       try:
-         slist=c.query(ad_type=htcondor.AdTypes.Startd,projection=full_projection,
+         slist=c.query(ad_type=htcondor2.AdType.Startd,projection=full_projection,
                        constraint='(K8SProvisionerType=?="PRPHTCondorProvisioner")&&(K8SProvisionerName=?="%s")&&(K8SNamespace=?="%s")&&(K8SDomain=?="%s")'%(self.app_name,self.namespace,self.k8s_domain))
       except:
          self.log_obj.log_debug("[ProvisionerCollector] Failed to retrieve HTCondor startd list")

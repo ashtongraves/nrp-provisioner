@@ -1,4 +1,4 @@
-FROM rockylinux:9
+FROM rockylinux/rockylinux:10
 
 # dependency needed by OSG
 RUN dnf install -y 'dnf-command(config-manager)' && \
@@ -6,16 +6,15 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     yum clean all
 
 # OSG RPMs
-# OSG 24: its osg-ca-certs has the current Let's Encrypt chains (YE1, ISRG Root YE),
-# and its HTCondor still ships the classic htcondor python module (25 only has htcondor2)
-RUN yum -y install https://repo.opensciencegrid.org/osg/24-main/osg-24-main-el9-release-latest.rpm && \
-    yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
-    yum -y install python3-pip git less which && \
+# osg-ca-certs must be recent enough for the current Let's Encrypt chains (YE1, ISRG Root YE)
+RUN yum -y install https://repo.opensciencegrid.org/osg/25-main/osg-25-main-el10-release-latest.rpm && \
+    yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm && \
+    yum -y install python3-pip less which && \
     yum -y install osg-ca-certs condor python3-condor && \
     yum clean all
 
 
-RUN pip3 install kubernetes
+RUN pip3 install --no-cache-dir kubernetes==37.0.1
 
 
 # Tell condor to use osg-ca-certs
