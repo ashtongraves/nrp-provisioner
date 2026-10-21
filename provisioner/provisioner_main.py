@@ -43,7 +43,7 @@ def main(log_fname, namespace, cvmfs_mounts):
 
    kconfig.additional_envs['CVMFS_REPOS'] = ",".join(cvmfsenvs)
 
-   log_obj = provisioner_logging.ProvisionerFileLogging(log_fname, want_log_debug=True)
+   log_obj = provisioner_logging.ProvisionerFileLogging(log_fname, want_log_debug=True, also_stdout=True)
    # TBD: Strong security
    schedd_whitelist=hfconfig.get('schedd_whitelist_regexp','.*')
    schedd_obj = provisioner_htcondor.ProvisionerSchedd(log_obj, {schedd_whitelist:'.*'}, cconfig)
