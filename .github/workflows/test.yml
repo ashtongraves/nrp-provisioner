@@ -1,0 +1,34 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  unit:
+    # Fast run without the HTCondor bindings: the htcondor2-dependent tests are skipped here
+    # and run inside the provisioner image below.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install kubernetes==37.0.1 pyyaml
+      - run: python -m unittest discover -s tests -v
+        working-directory: provisioner
+
+  provisioner-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nrp-provisioner:ci provisioner
+      - run: tests/image/provisioner.sh nrp-provisioner:ci
+
+  wn-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nrp-provisioner-wn:ci wn
+      - run: tests/image/wn.sh nrp-provisioner-wn:ci
