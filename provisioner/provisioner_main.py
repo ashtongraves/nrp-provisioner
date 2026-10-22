@@ -53,6 +53,8 @@ def main(log_fname, namespace, cvmfs_mounts):
 
    max_pods_per_cluster = int(kfconfig.get('max_pods_per_cluster','20'))
    max_submit_pods_per_cluster = int(kfconfig.get('max_submit_pods_per_cluster','1000'))
+   # clusters with no claimed pods get only this many, until one is claimed
+   trial_pods = int(kfconfig.get('trial_pods','2'))
    sleep_time = int(fconfig['DEFAULT'].get('sleep_time','120'))
 
    # stop provisioning for a while for clusters whose pods keep exiting unclaimed
@@ -60,7 +62,7 @@ def main(log_fname, namespace, cvmfs_mounts):
                                                         int(kfconfig.get('backoff_time','3600')),
                                                         int(kfconfig.get('backoff_max_time','28800')))
 
-   el = event_loop.ProvisionerEventLoop(log_obj, schedd_obj, collector_obj, k8s_obj, max_pods_per_cluster, max_submit_pods_per_cluster, backoff_obj)
+   el = event_loop.ProvisionerEventLoop(log_obj, schedd_obj, collector_obj, k8s_obj, max_pods_per_cluster, max_submit_pods_per_cluster, backoff_obj, trial_pods)
    while True:
       log_obj.log_debug("[Main] Iteration started, schedd whitelist='%s'"%schedd_whitelist)
       try:

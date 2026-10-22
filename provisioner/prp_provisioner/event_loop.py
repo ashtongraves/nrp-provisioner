@@ -9,7 +9,7 @@
 from . import provisioner_clustering
 
 class ProvisionerEventLoop:
-   def __init__(self, log_obj, schedd_obj, collector_obj, k8s_obj, max_pods_per_cluster, max_submit_pods_per_cluster, backoff_obj=None):
+   def __init__(self, log_obj, schedd_obj, collector_obj, k8s_obj, max_pods_per_cluster, max_submit_pods_per_cluster, backoff_obj=None, trial_pods=0):
       self.log_obj = log_obj
       self.schedd = schedd_obj
       self.collector = collector_obj
@@ -17,6 +17,7 @@ class ProvisionerEventLoop:
       self.max_pods_per_cluster = max_pods_per_cluster
       self.max_submit_pods_per_cluster = max_submit_pods_per_cluster
       self.backoff = backoff_obj
+      self.trial_pods = trial_pods # 0 means no limit
 
    def query_system(self):
       schedd_attrs = provisioner_clustering.ProvisionerClusteringAttributes().get_schedd_attributes()
@@ -116,6 +117,13 @@ class ProvisionerEventLoop:
 
       if min_pods>self.max_pods_per_cluster:
          min_pods = self.max_pods_per_cluster
+
+      if self.trial_pods>0 and min_pods>self.trial_pods:
+         n_pods_claimed = k8s_cluster.count_states()[2] if k8s_cluster!=None else 0
+         if n_pods_claimed==0:
+            # none of our pods for this cluster is running a job,
+            # so try only a few until we know the jobs can match them
+            min_pods = self.trial_pods
 
       (min_pods,n_pods_unclaimed) = self._check_and_report_cluster(cluster_id, k8s_cluster, n_jobs_idle, min_pods)
 

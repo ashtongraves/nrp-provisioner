@@ -66,6 +66,12 @@ groups wrong: a test slot's GPU isn't the GPU a real pod lands on. One GPU group
 predicted "can't match" was in fact matched on real nodes. The back-off's blind spot is mixed groups:
 a shape where *some* jobs match is never paused.
 
+Trial pods soften the cost before the back-off kicks in: a group with no claimed pods right now gets
+at most `trial_pods` (default 2) instead of up to 20. Once one is claimed, the group gets the normal
+number. It's stateless (it looks only at the current pods), so it also limits a mixed group whose
+matching jobs have run out, and a group that matches again recovers on the first claim. The cost is a
+slower start for a large new group: it ramps up one provisioner loop after its first claim.
+
 ## Containers, apptainer and user namespaces
 
 - **Unprivileged user namespaces are disabled on Nautilus nodes on purpose** (a CVE response). It's a

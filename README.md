@@ -50,10 +50,12 @@ provisioner after changing it, since the config file is mounted with `subPath`.
 The provisioner groups idle jobs by resource shape and keeps pods waiting for each group. Some
 jobs can never match these pods (for example jobs pinned to another site, or aimed at an HTCondor
 annex), so their pods idle out and get replaced. To limit that, a group whose pods keep exiting
-without ever being claimed is suspended for a while:
+without ever being claimed is suspended for a while. Before that, a group only gets a couple of
+trial pods until one of them is claimed; then it gets the usual number.
 
 | Setting (`[k8s]` section) | Default | Meaning |
 |---|---|---|
+| `trial_pods` | `2` | A group with no claimed pods gets at most this many pods (`0` disables) |
 | `backoff_unclaimed_exits` | `2` | Suspend a group after this many pods exit unclaimed with no claim in between (`0` disables) |
 | `backoff_time` | `3600` | First suspension, in seconds; doubled each time it happens again |
 | `backoff_max_time` | `28800` | Longest suspension, in seconds |
