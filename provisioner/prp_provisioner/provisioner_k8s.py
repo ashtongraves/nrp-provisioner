@@ -234,27 +234,27 @@ class ProvisionerK8S:
          # Similarly for memory, but request 80% there
          req = {
                'memory':  '%iMi'%int(int_vals['Memory']*0.8),
-               'cpu':            (int_vals['CPUs']*0.75)
+               'cpu':     self._quantity(int_vals['CPUs']*0.75)
             }
          # but enforce Memory limit + delta
          lim = {
                'memory':  '%iMi'%(int_vals['Memory']+1000),
-               'cpu':            (int_vals['CPUs']+0.25)
+               'cpu':     self._quantity(int_vals['CPUs']+0.25)
             }
       else:
          # Stick to the needs, with just small memory delta
          req = {
                'memory':  '%iMi'%(int_vals['Memory']+1000),
-               'cpu':     int_vals['CPUs']
+               'cpu':     self._quantity(int_vals['CPUs'])
             }
          lim = {
                'memory':  '%iMi'%(int_vals['Memory']+1000),
-               'cpu':     int_vals['CPUs']
+               'cpu':     self._quantity(int_vals['CPUs'])
             }
 
       if int_vals['GPUs']>0:
-         req['nvidia.com/gpu'] = int_vals['GPUs']
-         lim['nvidia.com/gpu'] = int_vals['GPUs']
+         req['nvidia.com/gpu'] = self._quantity(int_vals['GPUs'])
+         lim['nvidia.com/gpu'] = self._quantity(int_vals['GPUs'])
 
       if self.request_fuse != "no":
          req['smarter-devices/fuse'] = "1"
@@ -422,6 +422,12 @@ class ProvisionerK8S:
 
 
    # INTERNAL
+   def _quantity(self, val):
+      """Format a number as a k8s quantity string (2 -> "2", 1.5 -> "1.5")"""
+      if float(val).is_integer():
+         return "%i"%int(val)
+      return "%s"%val
+
    def _append_pods(self, pods, mypods):
       """pods is a list and will be updated in-place"""
       for pod in mypods:
@@ -520,10 +526,12 @@ class ProvisionerK8S:
                       {
                          'secret': {
                             'secretName': 'prp-htcondor-wn-secret',
+                            # note: defaultMode is not valid in an item, so the API server always
+                            # dropped the 'defaultMode': 256 that used to be here, and the client
+                            # now rejects it; the file keeps the default mode, as before
                             'items': [{
                                'key': 'prp-wn.token',
-                               'path': 'prp-wn.token',
-                               'defaultMode': 256
+                               'path': 'prp-wn.token'
                             }]
                          }
                       },
