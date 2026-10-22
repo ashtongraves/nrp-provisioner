@@ -4,6 +4,7 @@
 # BSD license, copyright Igor Sfiligoi 2021
 #
 
+import sys
 import time
 
 # abstract class, missing log method
@@ -37,11 +38,12 @@ class ProvisionerStdoutLogging(ProvisionerBaseLogging):
 
 
 class ProvisionerFileLogging(ProvisionerBaseLogging):
-   def __init__(self, fname, dated=True, want_log_debug=False, want_log_info=True):
+   def __init__(self, fname, dated=True, want_log_debug=False, want_log_info=True, also_stdout=False):
       ProvisionerBaseLogging.__init__(self, want_log_debug, want_log_info)
       self.buffer = []
       self.fname = fname
       self.dated = dated
+      self.also_stdout = also_stdout # e.g. so that kubectl logs shows the same lines
 
    def log(self, level_str, message):
       now = time.ctime()
@@ -54,6 +56,10 @@ class ProvisionerFileLogging(ProvisionerBaseLogging):
       blob = "".join(self.buffer);
       with open(fname,"a") as fd:
          fd.write(blob);
+      if self.also_stdout:
+         # stdout is block-buffered when not a terminal, so flush to show up right away
+         sys.stdout.write(blob)
+         sys.stdout.flush()
       # we can now reset the buffer
       self.buffer = []
 
