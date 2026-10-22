@@ -39,6 +39,7 @@ echo "$envout" | grep -qx "test.token" && pass "tokens copied to the provisioner
 # 4) startup with a fake service account: must get into the provisioning loop
 sa=$(mktemp -d); echo fake > "$sa/token"; echo osg-icecube > "$sa/namespace"
 printf -- '-----BEGIN CERTIFICATE-----\nZmFrZQ==\n-----END CERTIFICATE-----\n' > "$sa/ca.crt"
+chmod 755 "$sa"; chmod 644 "$sa"/*  # mktemp -d is 0700; the provisioner user in the container must read it
 start=$(run -e CONDOR_HOST=cm-1.ospool.osg-htc.org,cm-2.ospool.osg-htc.org -e K8S_NAMESPACE=osg-icecube -e CVMFS_MOUNTS=icecube,singularity \
   -e HTCONDOR_QUERY_INSECURE=yes -e KUBERNETES_SERVICE_HOST=127.0.0.1 -e KUBERNETES_SERVICE_PORT=6443 \
   -v "$sa:/var/run/secrets/kubernetes.io/serviceaccount:ro" -v "$REPO/k8s/osg-icecube/osg_provisioner.conf:/cfg/osg_provisioner.conf:ro" \
