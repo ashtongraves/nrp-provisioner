@@ -154,11 +154,11 @@ class FakeK8S:
       return 'job-%i'%len(self.submitted)
 
 class TestEventLoopBackoff(unittest.TestCase):
-   def make_loop(self, backoff):
+   def make_loop(self, backoff, trial_pods=0, n_idle=8):
       self.log = FakeLog()
       self.collector = FakeCollector()
       self.k8s = FakeK8S()
-      return event_loop.ProvisionerEventLoop(self.log, FakeSchedd(8), self.collector, self.k8s, 20, 1000, backoff)
+      return event_loop.ProvisionerEventLoop(self.log, FakeSchedd(n_idle), self.collector, self.k8s, 20, 1000, backoff, trial_pods)
 
    def test_suspended_cluster_is_not_provisioned(self):
       b = provisioner_backoff.ProvisionerBackoff(max_unclaimed_exits=2, backoff_time=3600)
@@ -183,6 +183,31 @@ class TestEventLoopBackoff(unittest.TestCase):
       self.k8s.pods = [pod('p1', 'Succeeded'), pod('p2', 'Succeeded')]
       el.one_iteration()
       self.assertEqual(self.k8s.submitted, [3])
+
+   def test_trial_pods_until_claimed(self):
+      el = self.make_loop(None, trial_pods=2, n_idle=40)
+      el.one_iteration()
+      self.assertEqual(self.k8s.submitted, [2])  # not 1+40/4=11
+      # the trial pods wait unclaimed: nothing more
+      self.k8s.pods = [pod('p1', 'Running'), pod('p2', 'Running')]
+      self.collector.ads = [startd('p1'), startd('p2')]
+      self.k8s.submitted = []
+      el.one_iteration()
+      self.assertEqual(self.k8s.submitted, [])
+      # one gets claimed: the cluster gets the full number
+      self.collector.ads = [startd('p1', 'Claimed'), startd('p2')]
+      el.one_iteration()
+      self.assertEqual(self.k8s.submitted, [10])  # 11 wanted, p2 still unclaimed
+
+   def test_trial_pods_below_limit_changes_nothing(self):
+      el = self.make_loop(None, trial_pods=2, n_idle=2)
+      el.one_iteration()
+      self.assertEqual(self.k8s.submitted, [1])
+
+   def test_trial_pods_disabled(self):
+      el = self.make_loop(None, trial_pods=0, n_idle=40)
+      el.one_iteration()
+      self.assertEqual(self.k8s.submitted, [11])
 
 if __name__ == '__main__':
    unittest.main()
