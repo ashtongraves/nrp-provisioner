@@ -29,6 +29,8 @@ prp_provisioner/         Python library. provisioner_htcondor.py is the only fil
                          HTCondor bindings, provisioner_k8s.py the only one that builds Job bodies.
 tests/                   unit tests, the image test (image.sh) and a sample config
 build-config.json        build matrix for the images repo
+LICENSES/                the original repositories' licenses (BSD-2-Clause, MIT); the code keeps
+                         their copyright headers
 ```
 
 ## How it works
