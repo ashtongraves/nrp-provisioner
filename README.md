@@ -115,6 +115,10 @@ kubectl create configmap wn-glidein-config -n osg-ligo --from-file=40_glidein.co
 
 ## Rolling out
 
+- **Current images:** the provisioner deployments run `hub.opensciencegrid.org/ashtongraves/nrp-provisioner:25-release`
+  (built from this repo on 2026-10-22, before `prp_provisioner/` became `src/`) until OSG publishes
+  `osg-htc/nrp-provisioner:25-release`; then switch the deployments to it. The workers run
+  `hub.opensciencegrid.org/osg-htc/nrp-ospool-ep:25-release` (`k8s_image`).
 - The ConfigMap is mounted with `subPath`, so config changes need a provisioner restart.
 - Deployments pull with `imagePullPolicy: Always`, so a pushed tag changes what runs at the next
   restart. Push test builds to a tag nothing uses, and check first:
