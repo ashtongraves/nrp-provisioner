@@ -25,8 +25,9 @@ unless marked as inference.
 
 ```
 Dockerfile, *.sh, *.py   the image: startup scripts and provisioner_main.py
-prp_provisioner/         Python library. provisioner_htcondor.py is the only file that touches the
-                         HTCondor bindings, provisioner_k8s.py the only one that builds Job bodies.
+src/                     Python library, installed in the image as the prp_provisioner package.
+                         provisioner_htcondor.py is the only file that touches the HTCondor
+                         bindings, provisioner_k8s.py the only one that builds Job bodies.
 tests/                   unit tests, the image test (image.sh) and a sample config
 build-config.json        build matrix for the images repo
 LICENSES/                the original repositories' licenses (BSD-2-Clause, MIT); the code keeps

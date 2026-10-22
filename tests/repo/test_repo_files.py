@@ -20,7 +20,7 @@ try:
 except ImportError:
    yaml = None
 try:
-   from prp_provisioner import provisioner_k8s
+   from src import provisioner_k8s
 except ImportError:
    provisioner_k8s = None
 

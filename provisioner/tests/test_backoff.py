@@ -11,9 +11,9 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-from prp_provisioner import provisioner_backoff
-from prp_provisioner import provisioner_clustering
-from prp_provisioner import event_loop
+from src import provisioner_backoff
+from src import provisioner_clustering
+from src import event_loop
 
 SHAPE = {'PodCPUs': '1', 'PodMemory': '4096', 'PodDisk': '8000000', 'PodGPUs': '0'}
 OTHER_SHAPE = {'PodCPUs': '19', 'PodMemory': '4096', 'PodDisk': '8000000', 'PodGPUs': '0'}

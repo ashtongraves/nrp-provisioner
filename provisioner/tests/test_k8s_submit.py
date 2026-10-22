@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 
 try:
    import kubernetes
-   from prp_provisioner import provisioner_k8s
+   from src import provisioner_k8s
 except ImportError:
    kubernetes = None
 

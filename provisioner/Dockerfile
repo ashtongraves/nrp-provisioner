@@ -20,8 +20,8 @@ RUN pip3 install --no-cache-dir kubernetes==37.0.1
 # Tell condor to use osg-ca-certs
 ADD 03_condor_sec.config /etc/condor/config.d/03_condor_sec.config
 
-# configure python packages
-ADD prp_provisioner /opt/provisioner/prp_provisioner
+# configure python packages (src/ is installed as the prp_provisioner package)
+ADD src /opt/provisioner/prp_provisioner
 
 # Copy /etc/skel explicitly: when built under amd64 emulation (e.g. on an arm64 Mac), EL10's useradd
 # leaves the home empty, and without ~/.bash_profile 'su -l' never reads the ~/.bashrc the setup scripts write
