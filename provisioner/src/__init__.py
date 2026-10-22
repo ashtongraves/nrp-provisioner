@@ -1,1 +1,1 @@
-# prp_provisioner super-module 
+# provisioner library (was prp_provisioner) 

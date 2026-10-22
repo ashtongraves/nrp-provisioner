@@ -24,7 +24,7 @@ run --entrypoint bash "$IMG" -c 'grep PRETTY_NAME /etc/os-release; python3 --ver
 
 # 1) unit tests, inside the image (they need the htcondor2 bindings and the kubernetes client)
 out=$(run -v "$TESTS:/t:ro" ${K8S:+-v "$K8S:/k8s:ro"} --entrypoint bash "$IMG" -c \
-  'mkdir -p /tmp/w/p && ln -s /opt/provisioner/prp_provisioner /tmp/w/p/src && cp -r /t /tmp/w/p/tests && { [ ! -d /k8s ] || ln -s /k8s /tmp/w/k8s; } && cd /tmp/w/p && python3 -B -m unittest discover -s tests 2>&1')
+  'mkdir -p /tmp/w/p && ln -s /opt/provisioner/src /tmp/w/p/src && cp -r /t /tmp/w/p/tests && { [ ! -d /k8s ] || ln -s /k8s /tmp/w/k8s; } && cd /tmp/w/p && python3 -B -m unittest discover -s tests 2>&1')
 echo "$out" | grep -q "^OK" && pass "unit tests: $(echo "$out" | grep '^Ran')" || { fail "unit tests"; echo "$out" | tail -20; }
 echo "$out" | grep -q "skipped" && fail "unit tests were skipped inside the image: $(echo "$out" | grep -o 'skipped=[0-9]*')"
 

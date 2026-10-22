@@ -11,10 +11,10 @@ import sys,os
 import time
 import configparser
 
-import prp_provisioner.provisioner_k8s as provisioner_k8s
-import prp_provisioner.provisioner_logging as provisioner_logging
-import prp_provisioner.provisioner_htcondor as provisioner_htcondor
-import prp_provisioner.event_loop as event_loop
+import src.provisioner_k8s as provisioner_k8s
+import src.provisioner_logging as provisioner_logging
+import src.provisioner_htcondor as provisioner_htcondor
+import src.event_loop as event_loop
 
 def main(namespace):
    fconfig = configparser.ConfigParser()
