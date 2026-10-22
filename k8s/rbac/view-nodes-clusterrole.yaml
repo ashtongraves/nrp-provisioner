@@ -1,6 +1,6 @@
 # Reference copy of the cluster-scoped ClusterRole that lets the worker pods' service account
 # (prp-htcondor-wn-ro) read nodes. Managed by NRP cluster admins, together with the shared
-# ClusterRoleBinding "view-nodes"; see INSTALL.txt in this directory before applying anything.
+# ClusterRoleBinding "view-nodes"; see "Deploying" in the top-level README before applying anything.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
