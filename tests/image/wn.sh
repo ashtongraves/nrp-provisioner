@@ -2,7 +2,7 @@
 #
 # Checks a built worker-node image. Usage (from the repo root):
 #
-#   tests/image/wn.sh hub.opensciencegrid.org/ashtongraves/nrp-provisioner-wn:<tag>
+#   tests/image/wn.sh hub.opensciencegrid.org/osg-htc/nrp-ospool-ep:25-release
 #
 # Needs docker; no network. The apptainer test itself fails here (no CVMFS, no user
 # namespaces), which is what the "yes" case expects.
