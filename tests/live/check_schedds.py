@@ -66,7 +66,7 @@ for a in ads:
 
 print("\n%d of %d schedds readable; %d idle jobs match this config" % (len(ads) - failed, len(ads), targeted))
 if failed:
-   print("For details on a failure, see README.md ('Failed to query HTCondor schedd'):\n"
+   print("For details on a failure, see provisioner/README.md ('Failed to query HTCondor schedd'):\n"
          "a private address times out; 'certificate verify failed' means the image's CA bundle;\n"
          "'required authentication ... failed' after SciTokens/FS points at the client version or the schedd's policy.")
 sys.exit(1 if failed else 0)

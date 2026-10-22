@@ -15,7 +15,10 @@ import sys
 import traceback
 
 import kubernetes
-import prp_provisioner.provisioner_k8s as pk
+try:
+   import src.provisioner_k8s as pk
+except ImportError:  # images built before prp_provisioner was renamed to src
+   import prp_provisioner.provisioner_k8s as pk
 
 cpus, gpus, mem, disk = (sys.argv[1] if len(sys.argv) > 1 else "2,1,32768,8000000").split(",")
 print("kubernetes client", kubernetes.__version__)

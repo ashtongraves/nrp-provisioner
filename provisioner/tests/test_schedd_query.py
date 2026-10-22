@@ -8,6 +8,7 @@
 #
 
 import configparser
+import glob
 import os
 import sys
 import unittest
@@ -16,12 +17,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 
 try:
    import classad2
-   from prp_provisioner import provisioner_htcondor
+   from src import provisioner_htcondor
 except ImportError:
    classad2 = None
 
-K8S_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'k8s')
-NAMESPACES = ('osg-opportunistic', 'osg-icecube', 'osg-nrao', 'osg-ligo')
+TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
+# the sample config, plus every namespace config when run inside the nrp-provisioner repo (k8s/)
+CONFIGS = {'sample': os.path.join(TESTS_DIR, 'sample_osg_provisioner.conf')}
+CONFIGS.update((os.path.basename(os.path.dirname(p)), p)
+               for p in sorted(glob.glob(os.path.join(TESTS_DIR, '..', '..', 'k8s', 'osg-*', 'osg_provisioner.conf'))))
 
 SCHEDDS = """
 [ Name = "ap1.example.org"; AuthenticatedIdentity = "ap1@pool"; MyAddress = "<192.0.2.1:9618>";
@@ -121,13 +125,13 @@ class TestScheddQuery(unittest.TestCase):
       with self.assertRaises(Exception):
          s.query_idle()
 
-   def test_repo_configs_have_exactly_one_container_condition(self):
-      for ns in NAMESPACES:
+   def test_configs_have_exactly_one_container_condition(self):
+      for name, path in CONFIGS.items():
          f = configparser.ConfigParser()
-         f.read(os.path.join(K8S_DIR, ns, 'osg_provisioner.conf'))
+         f.read(path)
          h = f['htcondor'] if 'htcondor' in f else f['DEFAULT']
-         with self.subTest(namespace=ns):
-            config = provisioner_htcondor.ProvisionerHTCConfig(ns)
+         with self.subTest(config=name):
+            config = provisioner_htcondor.ProvisionerHTCConfig(name)
             config.parse(h)
             s = provisioner_htcondor.ProvisionerSchedd(Log(), {".*": ".*"}, config)
             s.query_idle()

@@ -1,8 +1,9 @@
 # nrp-ospool-ep (worker image)
 
 The worker-node image the provisioner launches. Each pod runs the OSPool pilot with one static slot
-sized to the job group it was created for. See the [main README](../README.md) for the provisioner,
-configuration and deployment.
+sized to the job group it was created for. See the
+[provisioner README](../provisioner/README.md) for the provisioner and its configuration, and the
+[main README](../README.md) for the deployment.
 
 ## Where it's built
 

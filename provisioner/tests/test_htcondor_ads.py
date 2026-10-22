@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 
 try:
    import classad2
-   from prp_provisioner import provisioner_htcondor
-   from prp_provisioner import provisioner_clustering
+   from src import provisioner_htcondor
+   from src import provisioner_clustering
 except ImportError:
    classad2 = None
 

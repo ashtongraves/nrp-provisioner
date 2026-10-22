@@ -3,8 +3,8 @@
 # Catches bad edits before they reach the cluster. Needs PyYAML and the kubernetes client
 # (both installed in the provisioner image).
 #
-# Run from the provisioner directory:
-#   python3 -m unittest discover -s tests
+# Run from the repo root:
+#   python3 -m unittest discover -s tests/repo
 #
 
 import configparser
@@ -13,14 +13,14 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'provisioner'))
 
 try:
    import yaml
 except ImportError:
    yaml = None
 try:
-   from prp_provisioner import provisioner_k8s
+   from src import provisioner_k8s
 except ImportError:
    provisioner_k8s = None
 

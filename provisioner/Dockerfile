@@ -21,13 +21,13 @@ RUN pip3 install --no-cache-dir kubernetes==37.0.1
 ADD 03_condor_sec.config /etc/condor/config.d/03_condor_sec.config
 
 # configure python packages
-ADD prp_provisioner /opt/provisioner/prp_provisioner
+ADD src /opt/provisioner/src
 
 # Copy /etc/skel explicitly: when built under amd64 emulation (e.g. on an arm64 Mac), EL10's useradd
 # leaves the home empty, and without ~/.bash_profile 'su -l' never reads the ~/.bashrc the setup scripts write
 RUN useradd provisioner && cp -a /etc/skel/. /home/provisioner/ && chown -R provisioner: /home/provisioner && chown -R provisioner /opt/provisioner
 
-RUN su provisioner -c '/usr/bin/ln -s /opt/provisioner/prp_provisioner /home/provisioner/prp_provisioner'
+RUN su provisioner -c '/usr/bin/ln -s /opt/provisioner/src /home/provisioner/src'
 
 ADD provisioner_main.py /home/provisioner/provisioner_main.py
 ADD provisioner_info.py /home/provisioner/provisioner_info.py

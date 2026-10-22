@@ -13,7 +13,7 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-from prp_provisioner import provisioner_logging
+from src import provisioner_logging
 
 class TestFileLogging(unittest.TestCase):
    def setUp(self):

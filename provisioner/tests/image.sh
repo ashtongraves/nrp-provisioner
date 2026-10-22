@@ -1,16 +1,18 @@
 #!/bin/bash
 #
-# Checks a built provisioner image. Usage (from the repo root):
+# Checks a built provisioner image. Usage:
 #
-#   tests/image/provisioner.sh hub.opensciencegrid.org/ashtongraves/nrp-provisioner:<tag>
+#   tests/image.sh <image>        (from the provisioner directory)
 #
 # Needs docker. The startup check makes real (read-only) queries to the OSPool collector and
-# to the osg-icecube schedd, so it needs network access; without it the loop still starts,
-# but logs query failures.
+# to IceCube's schedd (tests/sample_osg_provisioner.conf), so it needs network access; without
+# it the loop still starts, but logs query failures.
 #
 set -u
 IMG=${1:?usage: $0 <image>}
-REPO=$(cd "$(dirname "$0")/../.." && pwd)
+TESTS=$(cd "$(dirname "$0")" && pwd)
+# inside the nrp-provisioner repo, the unit tests also check the namespace configs in k8s/
+K8S=$(cd "$TESTS/../../k8s" 2>/dev/null && pwd)
 PLATFORM=${PLATFORM:-linux/amd64}
 fails=0
 pass() { echo "PASS  $*"; }
@@ -21,8 +23,8 @@ echo "== $IMG"
 run --entrypoint bash "$IMG" -c 'grep PRETTY_NAME /etc/os-release; python3 --version; rpm -q condor python3-condor osg-ca-certs; python3 -c "import kubernetes; print(\"kubernetes\", kubernetes.__version__)"' | sed 's/^/      /'
 
 # 1) unit tests, inside the image (they need the htcondor2 bindings and the kubernetes client)
-out=$(run -v "$REPO/provisioner/tests:/t:ro" -v "$REPO/k8s:/k8s:ro" --entrypoint bash "$IMG" -c \
-  'mkdir -p /tmp/w/p && ln -s /opt/provisioner/prp_provisioner /tmp/w/p/prp_provisioner && cp -r /t /tmp/w/p/tests && ln -s /k8s /tmp/w/k8s && cd /tmp/w/p && python3 -B -m unittest discover -s tests 2>&1')
+out=$(run -v "$TESTS:/t:ro" ${K8S:+-v "$K8S:/k8s:ro"} --entrypoint bash "$IMG" -c \
+  'mkdir -p /tmp/w/p && ln -s /opt/provisioner/src /tmp/w/p/src && cp -r /t /tmp/w/p/tests && { [ ! -d /k8s ] || ln -s /k8s /tmp/w/k8s; } && cd /tmp/w/p && python3 -B -m unittest discover -s tests 2>&1')
 echo "$out" | grep -q "^OK" && pass "unit tests: $(echo "$out" | grep '^Ran')" || { fail "unit tests"; echo "$out" | tail -20; }
 echo "$out" | grep -q "skipped" && fail "unit tests were skipped inside the image: $(echo "$out" | grep -o 'skipped=[0-9]*')"
 
@@ -42,7 +44,7 @@ printf -- '-----BEGIN CERTIFICATE-----\nZmFrZQ==\n-----END CERTIFICATE-----\n' >
 chmod 755 "$sa"; chmod 644 "$sa"/*  # mktemp -d is 0700; the provisioner user in the container must read it
 start=$(run -e CONDOR_HOST=cm-1.ospool.osg-htc.org,cm-2.ospool.osg-htc.org -e K8S_NAMESPACE=osg-icecube -e CVMFS_MOUNTS=icecube,singularity \
   -e HTCONDOR_QUERY_INSECURE=yes -e KUBERNETES_SERVICE_HOST=127.0.0.1 -e KUBERNETES_SERVICE_PORT=6443 \
-  -v "$sa:/var/run/secrets/kubernetes.io/serviceaccount:ro" -v "$REPO/k8s/osg-icecube/osg_provisioner.conf:/cfg/osg_provisioner.conf:ro" \
+  -v "$sa:/var/run/secrets/kubernetes.io/serviceaccount:ro" -v "$TESTS/sample_osg_provisioner.conf:/cfg/osg_provisioner.conf:ro" \
   --entrypoint bash "$IMG" -c '
     mkdir -p /etc/condor/tokens.d && touch /etc/condor/tokens.d/none.token
     cp /cfg/osg_provisioner.conf /home/provisioner/ && chown provisioner /home/provisioner/osg_provisioner.conf

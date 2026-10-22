@@ -10,11 +10,11 @@ import sys
 import time
 import configparser
 
-import prp_provisioner.provisioner_k8s as provisioner_k8s
-import prp_provisioner.provisioner_logging as provisioner_logging
-import prp_provisioner.provisioner_htcondor as provisioner_htcondor
-import prp_provisioner.event_loop as event_loop
-import prp_provisioner.provisioner_backoff as provisioner_backoff
+import src.provisioner_k8s as provisioner_k8s
+import src.provisioner_logging as provisioner_logging
+import src.provisioner_htcondor as provisioner_htcondor
+import src.event_loop as event_loop
+import src.provisioner_backoff as provisioner_backoff
 
 def main(log_fname, namespace, cvmfs_mounts):
    fconfig = configparser.ConfigParser()

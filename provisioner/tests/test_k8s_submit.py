@@ -9,6 +9,7 @@
 #
 
 import configparser
+import glob
 import os
 import sys
 import unittest
@@ -17,11 +18,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 
 try:
    import kubernetes
-   from prp_provisioner import provisioner_k8s
+   from src import provisioner_k8s
 except ImportError:
    kubernetes = None
 
-K8S_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'k8s')
+TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
+# the sample config, plus every namespace config when run inside the nrp-provisioner repo (k8s/)
+CONFIGS = {'sample': os.path.join(TESTS_DIR, 'sample_osg_provisioner.conf')}
+CONFIGS.update((os.path.basename(os.path.dirname(p)), p)
+               for p in sorted(glob.glob(os.path.join(TESTS_DIR, '..', '..', 'k8s', 'osg-*', 'osg_provisioner.conf'))))
 
 class Sent(Exception):
    pass
@@ -39,10 +44,10 @@ class TestSubmit(unittest.TestCase):
    def tearDown(self):
       kubernetes.client.ApiClient.call_api = self.orig_call_api
 
-   def make_k8s(self, namespace, use_large_limit):
+   def make_k8s(self, name, use_large_limit):
       f = configparser.ConfigParser()
-      f.read(os.path.join(K8S_DIR, namespace, 'osg_provisioner.conf'))
-      k = provisioner_k8s.ProvisionerK8SConfig(namespace)
+      f.read(CONFIGS[name])
+      k = provisioner_k8s.ProvisionerK8SConfig(name if name.startswith('osg-') else 'osg-test')
       k.parse(f['k8s'] if 'k8s' in f else f['DEFAULT'])
       k.base_pvc_volumes['cvmfs'] = "#/cvmfs"
       k.use_large_limit = use_large_limit
@@ -54,19 +59,19 @@ class TestSubmit(unittest.TestCase):
       return self.sent[-1]
 
    def test_all_configs_pass_client_validation(self):
-      for namespace in ('osg-opportunistic', 'osg-icecube', 'osg-nrao', 'osg-ligo'):
+      for name in CONFIGS:
          for large in ('yes', 'no'):
             for gpus in ('0', '1'):
-               with self.subTest(namespace=namespace, use_large_limit=large, gpus=gpus):
-                  self.submit(self.make_k8s(namespace, large), "3", gpus)
+               with self.subTest(config=name, use_large_limit=large, gpus=gpus):
+                  self.submit(self.make_k8s(name, large), "3", gpus)
 
    def test_quantities_are_strings(self):
-      body = self.submit(self.make_k8s('osg-opportunistic', 'yes'), "3", "1")
+      body = self.submit(self.make_k8s('sample', 'yes'), "3", "1")
       res = body['spec']['template']['spec']['containers'][0]['resources']
       self.assertEqual(res['requests']['cpu'], "2.25")
       self.assertEqual(res['limits']['cpu'], "3.25")
       self.assertEqual(res['requests']['nvidia.com/gpu'], "1")
-      body = self.submit(self.make_k8s('osg-opportunistic', 'no'), "3", "0")
+      body = self.submit(self.make_k8s('sample', 'no'), "3", "0")
       res = body['spec']['template']['spec']['containers'][0]['resources']
       self.assertEqual(res['requests']['cpu'], "3")
       self.assertNotIn('nvidia.com/gpu', res['requests'])
