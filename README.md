@@ -26,7 +26,8 @@ provisioner/          Provisioner image -> hub.opensciencegrid.org/ashtongraves/
   prp_provisioner/    Python library. provisioner_htcondor.py is the only file that touches the
                       HTCondor bindings, provisioner_k8s.py the only one that builds Job bodies.
   tests/              Unit tests
-wn/                   Worker image -> hub.opensciencegrid.org/ashtongraves/nrp-provisioner-wn
+wn/                   Source of the worker image hub.opensciencegrid.org/osg-htc/nrp-ospool-ep,
+                      which OSG builds from opensciencegrid/images (see wn/README.md)
 k8s/
   rbac/               Service accounts and roles for the provisioner and the worker pods
   osg-*/              Per namespace: deployment, osg_provisioner.conf (its live ConfigMap), PVCs
@@ -237,11 +238,11 @@ kubectl create configmap wn-glidein-config -n osg-ligo --from-file=40_glidein.co
 
 ```bash
 docker build -t hub.opensciencegrid.org/ashtongraves/nrp-provisioner:<tag> provisioner
-docker build -t hub.opensciencegrid.org/ashtongraves/nrp-provisioner-wn:<tag> wn
 ```
 
 The provisioner image is Rocky 10, OSG 25, HTCondor 25 with the `htcondor2` bindings, Python 3.12 and
-a pinned `kubernetes` client. `nrp-provisioner:X` and `nrp-provisioner-wn:X` are independent images.
+a pinned `kubernetes` client. The worker image isn't built here: OSG builds and publishes it (see
+[wn/README.md](wn/README.md)), and each namespace's `k8s_image` points at it.
 
 ### Tests
 

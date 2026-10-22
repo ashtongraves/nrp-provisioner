@@ -27,6 +27,7 @@ except ImportError:
 K8S_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'k8s')
 NAMESPACES = sorted(os.path.basename(d) for d in glob.glob(os.path.join(K8S_DIR, 'osg-*')))
 IMAGE_REPO = "hub.opensciencegrid.org/ashtongraves/"
+WN_IMAGE_REPO = "hub.opensciencegrid.org/osg-htc/nrp-ospool-ep:"  # built by OSG from opensciencegrid/images
 
 def load_conf(ns):
    f = configparser.ConfigParser()
@@ -56,7 +57,7 @@ class TestProvisionerConfigs(unittest.TestCase):
          f = load_conf(ns)
          k = f['k8s'] if 'k8s' in f else f['DEFAULT']
          with self.subTest(namespace=ns):
-            self.assertTrue(k.get('k8s_image', '').startswith(IMAGE_REPO + "nrp-provisioner-wn:"))
+            self.assertTrue(k.get('k8s_image', '').startswith(WN_IMAGE_REPO))
             self.assertEqual(k.get('service_account_name'), 'prp-htcondor-wn-ro')
             self.assertTrue(f['DEFAULT'].get('app_name'))
 
@@ -80,7 +81,7 @@ class TestProvisionerConfigs(unittest.TestCase):
          with self.subTest(namespace=ns):
             k = provisioner_k8s.ProvisionerK8SConfig(ns)
             k.parse(f['k8s'] if 'k8s' in f else f['DEFAULT'])
-            self.assertTrue(k.k8s_image.startswith(IMAGE_REPO))
+            self.assertTrue(k.k8s_image.startswith(WN_IMAGE_REPO))
             self.assertIn(k.apptainer, ('yes', 'no'))
 
 @unittest.skipIf(yaml is None, "PyYAML not installed")

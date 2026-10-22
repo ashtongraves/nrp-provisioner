@@ -1,24 +1,37 @@
-# nrp-provisioner-wn
+# nrp-ospool-ep (worker image)
 
-The worker-node image the provisioner launches: `hub.opensciencegrid.org/ashtongraves/nrp-provisioner-wn`.
-Each pod runs the OSPool pilot with one static slot sized to the job group it was created for. See the
-[main README](../README.md) for the provisioner, configuration and deployment.
+The worker-node image the provisioner launches. Each pod runs the OSPool pilot with one static slot
+sized to the job group it was created for. See the [main README](../README.md) for the provisioner,
+configuration and deployment.
 
-## Base image
+## Where it's built
 
-Built on OSG's `hub.osg-htc.org/osg-htc/ospool-ep:${BASE_OSG_SERIES}-${BASE_YUM_REPO}` (default
-`25-release`). **Keep the `Dockerfile` and `scripts/` identical to `osg-htc/nrp-ospool-ep` in
-[opensciencegrid/images](https://github.com/opensciencegrid/images)**; make changes in both.
+**The image lives upstream:** `osg-htc/nrp-ospool-ep` in
+[opensciencegrid/images](https://github.com/opensciencegrid/images). OSG's CI builds it and publishes
+`hub.opensciencegrid.org/osg-htc/nrp-ospool-ep:25-release`, which every namespace's `k8s_image` uses.
+The tag moves: OSG rebuilds it regularly, not only when this directory changes (it was rebuilt on
+2026-10-22 with no change here), and new worker pods pull it (`k8s_image_pull_policy` defaults to
+`Always`).
+
+This directory is a copy of that source, kept identical, so the provisioner and its worker can be
+read and tested together. **Make changes upstream first** (a PR to opensciencegrid/images), then copy
+them here. Before changing a namespace to a new build, run the image test on it (see [Tests](#tests)).
+
+Until 2026-10-22 the namespaces ran our own build, `hub.opensciencegrid.org/ashtongraves/nrp-provisioner-wn`.
+
+## What's in it
+
+Built on OSG's `ospool-ep` (the pilot). On top of it, the image adds OpenCL for NVIDIA, `kubectl`
+(pinned by checksum), wrappers around `apptainer`/`singularity` that drop the `--pid`/`-p` options,
+its own `entrypoint.sh` and the startup scripts below. It defaults `ACCEPT_JOBS_FOR_HOURS=24` and
+`ACCEPT_IDLE_MINUTES=20`, since the pods run opportunistically and may be over-provisioned.
+
+To build it locally (e.g. to test a change before the upstream PR):
 
 ```bash
-docker build -t hub.opensciencegrid.org/ashtongraves/nrp-provisioner-wn:<tag> .
-docker build --build-arg BASE_YUM_REPO=release-20260726-0746 -t …  .   # on a specific dated base
+docker build -t nrp-ospool-ep:local wn
+docker build --build-arg BASE_YUM_REPO=release-20260726-0746 -t nrp-ospool-ep:local wn   # on a specific dated base
 ```
-
-On top of the base, the image adds OpenCL for NVIDIA, `kubectl` (pinned by checksum), wrappers around
-`apptainer`/`singularity` that drop the `--pid`/`-p` options, its own
-`entrypoint.sh` and the startup scripts below. It defaults `ACCEPT_JOBS_FOR_HOURS=24` and
-`ACCEPT_IDLE_MINUTES=20`, since the pods run opportunistically and may be over-provisioned.
 
 ## Startup
 
@@ -79,9 +92,10 @@ syslog off. Set `ENABLE_REMOTE_SYSLOG=false` in `envs_dict` to silence it.
 ## Tests
 
 ```bash
-tests/image/wn.sh hub.opensciencegrid.org/ashtongraves/nrp-provisioner-wn:<tag>   # from the repo root
+tests/image/wn.sh hub.opensciencegrid.org/osg-htc/nrp-ospool-ep:25-release   # from the repo root
 ```
 
 It sources the validation scripts the way the pilot does, for `PROVISIONER_APPTAINER=no`, `yes` and
 unset; checks the token script (a missing token aborts; a token without a trailing newline is read);
-and checks the CA bundle has Let's Encrypt `YE1`. It needs no network. CI runs it on every PR.
+and checks the CA bundle has Let's Encrypt `YE1`. It needs no network. CI runs it on a build of this
+directory on every PR.
