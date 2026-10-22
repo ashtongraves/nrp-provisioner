@@ -1,17 +1,40 @@
-To create the prp-wn.token:
-==============================
-Log into prp-cm-0.
-Execute
-export NAMESPACE=<namespace>
-condor_token_create -identity $NAMESPACE/prp-startd@htcondor-portal.svc.cluster.local \
-                    -authz READ \
-                    -authz ADVERTISE_MASTER \
-                    -authz ADVERTISE_STARTD
+Service accounts, roles and the worker token
+=============================================
 
+1) Per-namespace service accounts and roles (once per namespace)
 
-Save output in prp-wn-$NAMESPACE.token file.
+   kubectl apply -n $NAMESPACE -f prp-htcondor-provisioner-account.yaml   # provisioner: pods, jobs, deployments, secrets, configmaps
+   kubectl apply -n $NAMESPACE -f prp-htcondor-wn-account.yaml            # worker pods (prp-htcondor-wn-ro): read pods
 
-Now create the secret
-#kubectl delete secret prp-htcondor-wn-secret -n "$NAMESPACE"
-kubectl create secret generic prp-htcondor-wn-secret -n "$NAMESPACE" --from-file=prp-wn.token=prp-wn-$NAMESPACE.token
+2) Cluster-wide read access to nodes, for the worker pods
 
+   The worker image looks up its node's nautilus.io/OSGInstitutionID label
+   (wn/scripts/11_set_OSGInstitutionID.sh). Nodes are cluster-scoped, so a namespaced Role
+   can't grant this. It comes from the cluster-scoped ClusterRole and ClusterRoleBinding
+   "view-nodes", which NRP cluster admins manage:
+
+   - view-nodes-clusterrole.yaml is a copy of the ClusterRole, for reference.
+   - The ClusterRoleBinding is shared with other teams' service accounts, so it is NOT in
+     this repo: applying a copy would overwrite the live one. For a new namespace, ask the
+     cluster admins to add this subject to it:
+         - kind: ServiceAccount
+           name: prp-htcondor-wn-ro
+           namespace: <namespace>
+
+   Without it, worker pods still run; they just don't advertise OSG_INSTITUTION_ID.
+
+3) The worker token secret
+
+   prp-htcondor-wn-secret (key prp-wn.token) holds an OSPool IDTOKEN (issuer
+   flock.opensciencegrid.org, scopes condor:/READ condor:/ADVERTISE_MASTER
+   condor:/ADVERTISE_STARTD, no expiry). The provisioner and the worker pods share it. The
+   current tokens were issued by the OSPool central manager (cm-1.ospool.osg-htc.org); get
+   new ones from the OSPool. Tokens are never stored in this repo.
+
+   kubectl create secret generic prp-htcondor-wn-secret -n $NAMESPACE --from-file=prp-wn.token=<token file>
+
+   To check a token without exposing it, decode only its claims (the middle, base64url
+   part); never print or paste the signature.
+
+(The original instructions here created the token on the PRP portal's own central manager,
+prp-cm-0. That setup is no longer used.)

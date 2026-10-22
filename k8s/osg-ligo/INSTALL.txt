@@ -1,12 +1,35 @@
-Note: Assuming the basic provisioning setup was already in place
+Setting up the osg-ligo provisioner
+===================================
 
-1) needs token in prp-wn-gke-ligo.token
-# used by both provisioner and WNs
-kubectl create secret generic prp-htcondor-wn-secret -n osg-ligo --from-file=prp-wn.token=prp-wn-gke-ligo.token
+LIGO GPU jobs in the IGWN pool (CONDOR_HOST=condor.igwn.org). The deployment is at 0
+replicas on purpose: almost all LIGO work needs containers, so there's nothing to do
+while apptainer=no.
 
-2) create config file
-kubectl create configmap direct-provisioner-config -n osg-ligo --from-file=osg_provisioner.conf=osg_provisioner.conf
+The files in this directory match what's deployed. Run these from this directory.
 
-3) Launch yamls
-kubectl create -f pvc-provisioner-logs.yaml
-kubectl create -f provisioner-ligo.yaml
+0) Service accounts, roles and node access (once per namespace): see ../rbac/INSTALL.txt
+
+   kubectl apply -n osg-ligo -f ../rbac/prp-htcondor-provisioner-account.yaml
+   kubectl apply -n osg-ligo -f ../rbac/prp-htcondor-wn-account.yaml
+
+1) Worker token secret (shared by the provisioner and the worker pods; not in this repo):
+
+   kubectl create secret generic prp-htcondor-wn-secret -n osg-ligo --from-file=prp-wn.token=<token file>
+
+2) Provisioner config:
+
+   kubectl create configmap direct-provisioner-config -n osg-ligo --from-file=osg_provisioner.conf=osg_provisioner.conf
+   kubectl create configmap wn-glidein-config -n osg-ligo --from-file=40_glidein.config=40_glidein.config
+   # mounted into the worker pods via config_volumes_dict (sets POOL_NAME for the IGWN pool)
+
+   The config is mounted with subPath, so after changing it restart the provisioner
+   (kubectl rollout restart deploy/<name> -n osg-ligo).
+
+3) Volumes: CVMFS (mounted into every worker pod) and the provisioner's log PVC:
+
+   kubectl create -f cvmfs.yaml
+   kubectl create -f pvc-provisioner-logs.yaml
+
+4) The provisioner:
+
+   kubectl create -f provisioner-ligo.yaml
