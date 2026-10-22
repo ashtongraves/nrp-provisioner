@@ -46,10 +46,17 @@ learned in production, including dead ends, so you don't have to rediscover it.
 - **Images build on the maintainer's arm64 Mac under amd64 emulation.** It's slow, and EL10 behaves
   differently from a native build (e.g. `useradd` skipping `/etc/skel`). `--pull` forces a full
   rebuild, so skip it for quick test builds. There's no `timeout` command on that Mac.
-- **Test the image, not just the code.** Run the unit tests inside the built image. Smoke-test
-  `provisioner_startup.sh` with a *fake service account* mounted, so the run gets past the Kubernetes
-  login. Test Job submission through the real `kubernetes` client (`tests/test_k8s_submit.py`), since
-  a fake API object skips its validation.
+- **Test the image, not just the code.** The tests are in place; use them before inventing new
+  ad-hoc checks (see [tests/README.md](tests/README.md)):
+  - `cd provisioner && python3 -m unittest discover -s tests` for unit tests (the `htcondor2` ones
+    skip without the bindings);
+  - `tests/image/provisioner.sh <image>` and `tests/image/wn.sh <image>` on every built image (the
+    unit tests inside the image, environment reaching `su -l`, startup with a fake service account,
+    worker validation and token scripts);
+  - `tests/live/check_schedds.py` (can this image read each whitelisted schedd, and why not) and
+    `tests/live/dryrun_submit.py` (server-side dry-run Job submission, run in a pod).
+
+  CI runs the unit and image tests on every PR.
 - **Tags:** deployments pull with `Always`. Push test builds to a tag nothing uses, and check users
   first:
   `kubectl get deploy -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name} {.spec.template.spec.containers[*].image}{"\n"}{end}' | grep nrp-provisioner:`.

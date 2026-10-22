@@ -63,7 +63,7 @@ Only pods that end `Succeeded` with a startd that was never claimed count. Faile
 only, so a group mixing unmatchable jobs with jobs that do match is never suspended. The state
 lives in memory and starts fresh when the provisioner restarts.
 
-Unit tests: `cd provisioner && python3 -m unittest discover -s tests`.
+Tests: unit tests in `provisioner/tests/`, image and live checks in `tests/`; see [tests/README.md](tests/README.md). CI runs them on every PR.
 
 ## Origin
 
