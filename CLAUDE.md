@@ -1,9 +1,14 @@
 # nrp-provisioner: notes for agents
 
-**Read [README.md](README.md) before changing behaviour or diagnosing anything**, and
+**Read [provisioner/README.md](provisioner/README.md) before changing behaviour or diagnosing
+anything**, [README.md](README.md) for the deployment and incident history, and
 [wn/README.md](wn/README.md) for the worker image. They record how the system works and what was
 learned in production, including dead ends, so you don't have to rediscover it. Keep them up to date
 when you learn something new; there are no other docs.
+
+**Both images are built by OSG from [opensciencegrid/images](https://github.com/opensciencegrid/images):**
+`provisioner/` is identical to `osg-htc/nrp-provisioner` and `wn/` to `osg-htc/nrp-ospool-ep`. Change
+them upstream first (a PR there), then copy the directory here unchanged; `diff -r` must stay empty.
 
 ## Working here
 
@@ -12,8 +17,8 @@ when you learn something new; there are no other docs.
   token contents; decode only token claims, never the signature.
 - **Unprivileged user namespaces are disabled on the nodes on purpose.** Don't propose turning them
   back on.
-- **Test the image, not just the code.** Run the unit tests, then `tests/image/provisioner.sh` or
-  `tests/image/wn.sh` on every image you build, before inventing ad-hoc checks.
+- **Test the image, not just the code.** Run the unit tests, then `provisioner/tests/image.sh` or
+  `tests/image/wn.sh` on every image you build or deploy, before inventing ad-hoc checks.
 - **Push test builds to a tag nothing uses** (deployments pull with `Always`), and roll out one
   namespace at a time. See "Rolling out" in the README.
 - **The maintainer reviews changes as PRs** on github.com/ashtongraves/nrp-provisioner. Open them

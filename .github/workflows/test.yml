@@ -18,13 +18,14 @@ jobs:
       - run: pip install kubernetes==37.0.1 pyyaml
       - run: python -m unittest discover -s tests -v
         working-directory: provisioner
+      - run: python -m unittest discover -s tests/repo -v
 
   provisioner-image:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t nrp-provisioner:ci provisioner
-      - run: tests/image/provisioner.sh nrp-provisioner:ci
+      - run: provisioner/tests/image.sh nrp-provisioner:ci
 
   wn-image:
     runs-on: ubuntu-latest
