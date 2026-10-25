@@ -268,8 +268,8 @@ class ProvisionerK8S:
          if eph_storage<min_disk:
             eph_storage = min_disk
 
-      req['ephemeral-storage'] = '%ik'%eph_storage
-      lim['ephemeral-storage'] = '%ik'%eph_storage
+      req['ephemeral-storage'] = '%iKi'%eph_storage
+      lim['ephemeral-storage'] = '%iKi'%eph_storage
 
       for k in self.additional_resources.keys():
          req[k] = copy.copy(self.additional_resources[k])
@@ -381,13 +381,13 @@ class ProvisionerK8S:
                   'restartPolicy': 'Never',
                   'tolerations' : tolerations,
                   'nodeSelector' : node_selectors,
-                  "affinity": {
+                  **({"affinity": {
                    "nodeAffinity": {
                     "requiredDuringSchedulingIgnoredDuringExecution": {
                      "nodeSelectorTerms": [ { "matchExpressions": node_affinity_selectors } ]
                     }
                    }
-                  },
+                  }} if node_affinity_selectors else {}),
                   'containers': [{
                      'name': 'htcondor',
                      'image': k8s_image,
